@@ -1,12 +1,13 @@
 #!/bin/bash
-TODO_FILE=~/.rofi_todos
+# TODO_FILE=~/.rofi_todos
+TODO_FILE=${ROFI_TODO:-${HOME}/.rofi_todos}
 
 if [[ ! -a "${TODO_FILE}" ]]; then
     touch "${TODO_FILE}"
 fi
 
 function add_todo() {
-    echo -e "`date +"%B %d %H:%M"` $*" >> "${TODO_FILE}"
+    echo -e "$(date +"%F %R") $*" >> "${TODO_FILE}"
 }
 
 function remove_todo() {
@@ -22,14 +23,12 @@ if [ -z "$@" ]; then
 else
     LINE=$(echo "${@}" | sed "s/\([^a-zA-Z0-9]\)/\\\\\\1/g")
     LINE_UNESCAPED=${@}
-    if [[ $LINE_UNESCAPED == +* ]]; then
+    MATCHING=$(grep "^${LINE_UNESCAPED}$" "${TODO_FILE}")
+    if [[ -n "${MATCHING}" ]]; then
+        remove_todo ${LINE_UNESCAPED}
+    else
         LINE_UNESCAPED=$(echo $LINE_UNESCAPED | sed s/^+//g |sed s/^\s+//g )
         add_todo ${LINE_UNESCAPED}
-    else
-        MATCHING=$(grep "^${LINE_UNESCAPED}$" "${TODO_FILE}")
-        if [[ -n "${MATCHING}" ]]; then
-            remove_todo ${LINE_UNESCAPED}
-        fi
     fi
     get_todos
 fi
